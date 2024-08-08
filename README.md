@@ -29,9 +29,6 @@ This section should list any major frameworks/libraries used to bootstrap your p
 * Mockito based Junit unit tests
 
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -116,11 +113,10 @@ _Below is an example of how you can instruct your audience on installing and set
             "quantity": 8,
             "totalPrice": 200
         }
-    ]
-}
+    ] }
+   response : {
+                "amount": 164.00
+              } 
 
 7. Below is the screenshot for above request via Postman :
-
-   ```sh
-   ![ScreenShot]( https://github.com/pisharma01/nagarro-repo.git/master/dm-assignment/retail/src/main/resources/execution_pisharma.png)
-   ```
+  ![Model](https://github.com/pisharma01/nagarro-repo/blob/9086a8063541c9ee1119438acd21e151cc08bb15/dm-assignment/retail/src/main/resources/execution_pisharma.png)
