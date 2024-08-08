@@ -10,6 +10,6 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 public class BillingAmountRequestDto implements Serializable {
-    private String username;
+    private Long userId;
     private List<ProductDto> products;
 }

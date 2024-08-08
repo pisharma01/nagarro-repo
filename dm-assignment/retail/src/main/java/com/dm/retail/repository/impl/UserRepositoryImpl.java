@@ -1,6 +1,5 @@
 package com.dm.retail.repository.impl;
 
-import com.dm.retail.enums.UserType;
 import com.dm.retail.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,14 +16,14 @@ public class UserRepositoryImpl implements UserRepository {
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    public String getUserTypeByUsername(String username) {
-        logger.info("Inside UserRepositoryImpl.getUserTypeByUsername with username {}", username);
-        String query = "SELECT USERTYPE FROM AUTH.USER_DTLS WHERE USERNAME = ?";
+    public String getUserTypeByUsername(Long userId) {
+        logger.info("Inside UserRepositoryImpl.getUserTypeByUsername with username {}", userId);
+        String query = "SELECT USERTYPE FROM AUTH.USER_DTLS WHERE ID = ?";
         try{
-            logger.info("Query : {} with username : {}", query, username);
-            return jdbcTemplate.queryForObject(query,String.class, username);
+            logger.info("Query : {} with username : {}", query, userId);
+            return jdbcTemplate.queryForObject(query,String.class, userId);
         }catch(Exception exception){
-            logger.error("Exception occurred in getUserTypeByUsername for username {}", username);
+            logger.error("Exception occurred in getUserTypeByUsername for username {}", userId);
         }
         return null;
     }

@@ -3,6 +3,7 @@ package com.dm.retail.service.impl;
 import com.dm.retail.dto.ProductDto;
 import com.dm.retail.dto.request.BillingAmountRequestDto;
 import com.dm.retail.dto.response.BillingAmountResponseDto;
+import com.dm.retail.entity.Product;
 import com.dm.retail.enums.ProductType;
 import com.dm.retail.enums.UserType;
 import com.dm.retail.exception.CustomRetailException;
@@ -18,7 +19,13 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+/**
+ * Service class to compute discounted price
+ */
 @Service
 public class BillingAmountServiceImpl implements BillingAmountService {
 
@@ -30,45 +37,92 @@ public class BillingAmountServiceImpl implements BillingAmountService {
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * Method to compute discounted price
+     * @param billingAmountRequestDto
+     * @return amount
+     */
     @Override
     public BillingAmountResponseDto computeNetBillingAmount(BillingAmountRequestDto billingAmountRequestDto) {
         logger.info("Inside BillingAmountServiceImpl.computeNetBillingAmount");
         try{
-            if(billingAmountRequestDto.getUsername() == null || billingAmountRequestDto.getUsername().trim().isEmpty()){
-               throw new CustomRetailException("Username can't be empty");
+            if(billingAmountRequestDto.getUserId() == null){
+               throw new CustomRetailException("UserId can't be null");
             }
-            UserType userType = UserType.valueOf(userRepository.getUserTypeByUsername(billingAmountRequestDto.getUsername()));
-            BigDecimal billingAmountBeforeDiscount = billingAmountRequestDto.getProducts().stream()
-                    .filter(product -> !product.getType().equals( ProductType.GROCERY.name()))
-                    .map(ProductDto::getTotalPrice)
+            UserType userType = UserType.valueOf(userRepository.getUserTypeByUsername(billingAmountRequestDto.getUserId()));
+            List<Product> productDetails = getProductDetails(billingAmountRequestDto.getProducts());
+            if(productDetails == null || productDetails.isEmpty()){
+                throw new CustomRetailException("Product Details doesn't exist or Invalid product codes");
+            }
+            billingAmountRequestDto.getProducts().forEach( productDto -> {
+
+            });
+            BigDecimal billingAmountExcludingGrocery = productDetails.stream()
+                    .filter(product -> product.getType() != ProductType.GROCERY)
+                    .map(p -> {
+                        return p.getPrice().multiply(BigDecimal.valueOf(billingAmountRequestDto.getProducts()
+                                .stream().filter(q ->
+                                        q.getProductCode().equals(p.getProductCode())).findFirst().get().getQuantity()));
+                    })
                     .reduce(new BigDecimal("0"), BigDecimal::add);
-            logger.info("billingAmountBeforeDiscount {}" , billingAmountBeforeDiscount);
-            BigInteger divisorForHundredMultiples = billingAmountBeforeDiscount.toBigInteger()
-                    .divide(BigInteger.valueOf(100));
-            BigInteger hundredMultiplesCount =
-                    divisorForHundredMultiples.compareTo(BigInteger.valueOf(1)) < 0
-                            ? BigInteger.valueOf(0) : divisorForHundredMultiples;
-            BigDecimal amountAgainstHundred = new BigDecimal(hundredMultiplesCount.multiply(BigInteger.valueOf(5)),
-            new MathContext(2, RoundingMode.UNNECESSARY));
-            logger.info("amountAgainstHundred {}", amountAgainstHundred);
-            logger.info("userType.getDiscount() {}", userType.getDiscount());
-            BigDecimal totalDiscountOffered =
-            billingAmountBeforeDiscount.multiply(new BigDecimal(userType.getDiscount())
-                    , new MathContext(2, RoundingMode.UNNECESSARY))
-                                .divide(new BigDecimal(100),
-                            new MathContext(2, RoundingMode.UNNECESSARY))
-                    .add(amountAgainstHundred, new MathContext(2, RoundingMode.UNNECESSARY));
-            logger.info("TotalDiscountOffered {}", totalDiscountOffered);
-            BigDecimal initialAmount = billingAmountRequestDto.getProducts().stream()
-                    .map(ProductDto::getTotalPrice)
+            logger.info("billingAmountExcludingGrocery {}" , billingAmountExcludingGrocery);
+            BigDecimal initialAmount = productDetails.stream()
+                    .map(p -> {
+                        return p.getPrice().multiply(BigDecimal.valueOf(billingAmountRequestDto.getProducts()
+                                .stream().filter(q ->
+                                        q.getProductCode().equals(p.getProductCode())).findFirst().get().getQuantity()));
+                    })
                     .reduce(new BigDecimal("0"), BigDecimal::add);
             logger.info("InitialAmount {}", initialAmount);
+            BigDecimal flatDiscount = getFlatDiscount(initialAmount);
+            BigDecimal percentageDiscount = getPercentageBasedDiscount(billingAmountExcludingGrocery, userType);
+            logger.info("percentageDiscount {}", percentageDiscount);
+            logger.info("flatDiscount {}", flatDiscount);
+            logger.info("userType.getDiscount() {}", userType.getDiscount());
+            BigDecimal totalDiscountOffered =
+            percentageDiscount.add(flatDiscount, new MathContext(2, RoundingMode.UNNECESSARY));
+            logger.info("TotalDiscountOffered {}", totalDiscountOffered);
             return new BillingAmountResponseDto(initialAmount.subtract(totalDiscountOffered)
                     .setScale(2, RoundingMode.UNNECESSARY));
         }catch(Exception exception){
-            logger.error("Exception occurred inside computeNetBillingAmount for username {}", billingAmountRequestDto.getUsername());
+            logger.error("Exception occurred inside computeNetBillingAmount for username {}", billingAmountRequestDto.getUserId());
             throw new CustomRetailException(exception.getMessage(), exception);
         }
+    }
+
+    /**
+     * Method to compute percentage discount.
+     * @param amount
+     * @param userType
+     * @return amount
+     */
+    private BigDecimal getPercentageBasedDiscount(BigDecimal amount, UserType userType){
+        return amount.multiply(new BigDecimal(userType.getDiscount())
+                        , new MathContext(2, RoundingMode.UNNECESSARY))
+                .divide(new BigDecimal(100),
+                        new MathContext(2, RoundingMode.UNNECESSARY));
+
+    }
+
+    /**
+     * Method to compute flat discount.
+     * @param amount
+     * @return flatDiscount
+     */
+    private BigDecimal getFlatDiscount(BigDecimal amount){
+        BigInteger divisorForHundredMultiples = amount.toBigInteger()
+                .divide(BigInteger.valueOf(100));
+        BigInteger hundredMultiplesCount =
+                divisorForHundredMultiples.compareTo(BigInteger.valueOf(1)) < 0
+                        ? BigInteger.valueOf(0) : divisorForHundredMultiples;
+       return new BigDecimal(hundredMultiplesCount.multiply(BigInteger.valueOf(5)),
+                new MathContext(2, RoundingMode.UNNECESSARY));
+    }
+
+    private List<Product> getProductDetails(List<ProductDto> products){
+        Set<String> productCodes = products.stream().map(ProductDto::getProductCode)
+                .collect(Collectors.toSet());
+        return productRepository.getProductsByProductCode(productCodes);
     }
 
 }
