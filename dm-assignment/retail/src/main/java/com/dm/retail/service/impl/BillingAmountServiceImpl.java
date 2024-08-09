@@ -39,8 +39,8 @@ public class BillingAmountServiceImpl implements BillingAmountService {
 
     /**
      * Method to compute discounted price
-     * @param billingAmountRequestDto
-     * @return amount
+     * @param billingAmountRequestDto - Request Object
+     * @return BillingAmountResponseDto - response object
      */
     @Override
     public BillingAmountResponseDto computeNetBillingAmount(BillingAmountRequestDto billingAmountRequestDto) {
@@ -49,14 +49,11 @@ public class BillingAmountServiceImpl implements BillingAmountService {
             if(billingAmountRequestDto.getUserId() == null){
                throw new CustomRetailException("UserId can't be null");
             }
-            UserType userType = UserType.valueOf(userRepository.getUserTypeByUsername(billingAmountRequestDto.getUserId()));
+            UserType userType = UserType.valueOf(userRepository.getUserTypeByUserID(billingAmountRequestDto.getUserId()));
             List<Product> productDetails = getProductDetails(billingAmountRequestDto.getProducts());
             if(productDetails == null || productDetails.isEmpty()){
                 throw new CustomRetailException("Product Details doesn't exist or Invalid product codes");
             }
-            billingAmountRequestDto.getProducts().forEach( productDto -> {
-
-            });
             BigDecimal billingAmountExcludingGrocery = productDetails.stream()
                     .filter(product -> product.getType() != ProductType.GROCERY)
                     .map(p -> {
@@ -92,8 +89,8 @@ public class BillingAmountServiceImpl implements BillingAmountService {
 
     /**
      * Method to compute percentage discount.
-     * @param amount
-     * @param userType
+     * @param amount - Amount on which percentage discount to be computed
+     * @param userType - Type of User
      * @return amount
      */
     private BigDecimal getPercentageBasedDiscount(BigDecimal amount, UserType userType){
@@ -106,7 +103,7 @@ public class BillingAmountServiceImpl implements BillingAmountService {
 
     /**
      * Method to compute flat discount.
-     * @param amount
+     * @param amount - flat discount
      * @return flatDiscount
      */
     private BigDecimal getFlatDiscount(BigDecimal amount){
@@ -119,6 +116,11 @@ public class BillingAmountServiceImpl implements BillingAmountService {
                 new MathContext(2, RoundingMode.UNNECESSARY));
     }
 
+    /**
+     * Method to pull product details.
+     * @param products - List of product dto
+     * @return list of products entities
+     */
     private List<Product> getProductDetails(List<ProductDto> products){
         Set<String> productCodes = products.stream().map(ProductDto::getProductCode)
                 .collect(Collectors.toSet());

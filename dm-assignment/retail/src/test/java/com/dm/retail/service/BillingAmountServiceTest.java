@@ -39,7 +39,7 @@ public class BillingAmountServiceTest {
 
     @Test
     public void computeBillingAmountWithCustomerAsEmployeeSuccessfully(){
-        Mockito.when(userRepository.getUserTypeByUsername(any())).thenReturn(UserType.EMPLOYEE.name());
+        Mockito.when(userRepository.getUserTypeByUserID(any())).thenReturn(UserType.EMPLOYEE.name());
         Mockito.when(productRepository.getProductsByProductCode(any())).thenReturn(List.of(
                 new Product(1L, "GRC001",  "GROCERY", ProductType.GROCERY, "100", "GROCERY", new BigDecimal("4")),
                 new Product(2L, "CL001", "CLOTHING", ProductType.CLOTHING, "100", "CLOTHING", new BigDecimal("5")),
@@ -61,7 +61,7 @@ public class BillingAmountServiceTest {
 
     @Test
     public void computeBillingAmountWithInvalidProductIdsUnsuccessfully(){
-        Mockito.when(userRepository.getUserTypeByUsername(any())).thenReturn(UserType.EMPLOYEE.name());
+        Mockito.when(userRepository.getUserTypeByUserID(any())).thenReturn(UserType.EMPLOYEE.name());
         BillingAmountRequestDto request = getInvalidProductsBillingAmountRequest();
         Mockito.when(productRepository.getProductsByProductCode(any())).thenReturn(null);
         Assertions.assertThrows(CustomRetailException.class, () -> billingAmountService.computeNetBillingAmount(request));

@@ -1,5 +1,6 @@
 package com.dm.retail.repository.impl;
 
+import com.dm.retail.exception.CustomRetailException;
 import com.dm.retail.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,7 @@ public class UserRepositoryImpl implements UserRepository {
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    public String getUserTypeByUsername(Long userId) {
+    public String getUserTypeByUserID(Long userId) {
         logger.info("Inside UserRepositoryImpl.getUserTypeByUsername with username {}", userId);
         String query = "SELECT USERTYPE FROM AUTH.USER_DTLS WHERE ID = ?";
         try{
@@ -24,7 +25,7 @@ public class UserRepositoryImpl implements UserRepository {
             return jdbcTemplate.queryForObject(query,String.class, userId);
         }catch(Exception exception){
             logger.error("Exception occurred in getUserTypeByUsername for username {}", userId);
+            throw new CustomRetailException(exception.getMessage(), exception);
         }
-        return null;
     }
 }
