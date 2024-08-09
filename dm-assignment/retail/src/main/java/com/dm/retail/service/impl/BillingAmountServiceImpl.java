@@ -56,19 +56,19 @@ public class BillingAmountServiceImpl implements BillingAmountService {
             }
             BigDecimal billingAmountExcludingGrocery = productDetails.stream()
                     .filter(product -> product.getType() != ProductType.GROCERY)
-                    .map(p -> {
-                        return p.getPrice().multiply(BigDecimal.valueOf(billingAmountRequestDto.getProducts()
+                    .map(p ->
+                         p.getPrice().multiply(BigDecimal.valueOf(billingAmountRequestDto.getProducts()
                                 .stream().filter(q ->
-                                        q.getProductCode().equals(p.getProductCode())).findFirst().get().getQuantity()));
-                    })
+                                        q.getProductCode().equals(p.getProductCode())).findFirst().get().getQuantity()))
+                    )
                     .reduce(new BigDecimal("0"), BigDecimal::add);
             logger.info("billingAmountExcludingGrocery {}" , billingAmountExcludingGrocery);
             BigDecimal initialAmount = productDetails.stream()
-                    .map(p -> {
-                        return p.getPrice().multiply(BigDecimal.valueOf(billingAmountRequestDto.getProducts()
+                    .map(p ->
+                            p.getPrice().multiply(BigDecimal.valueOf(billingAmountRequestDto.getProducts()
                                 .stream().filter(q ->
-                                        q.getProductCode().equals(p.getProductCode())).findFirst().get().getQuantity()));
-                    })
+                                        q.getProductCode().equals(p.getProductCode())).findFirst().get().getQuantity()))
+                    )
                     .reduce(new BigDecimal("0"), BigDecimal::add);
             logger.info("InitialAmount {}", initialAmount);
             BigDecimal flatDiscount = getFlatDiscount(initialAmount);
