@@ -84,39 +84,25 @@ _Below is an example of how you can instruct your audience on installing and set
     url : http://localhost:9000/retail-store/api/v1/billing/amount
     method : POST
     body :  {
-    "username": "pisharma",
+    "userId": 1,
     "products": [
         {
             "productCode": "GRC001",
-            "name": "COCA-COLA",
-            "type": "GROCERY",
-            "description": "DRINK",
-            "price": 10,
-            "quantity": 2,
-            "totalPrice": 20
+            "quantity": 2
         },
         {
             "productCode": "CL001",
-            "name": "POLO_SHIRT",
-            "type": "CLOTHING",
-            "description": "CLOTHING",
-            "price": 10,
-            "quantity": 2,
-            "totalPrice": 20
+            "quantity": 2
         },
         {
             "productCode": "SEC001",
-            "name": "CAMERA",
-            "type": "SECURITY_SUPPLIES",
-            "description": "SECURITY_SUPPLIES",
-            "price": 25,
-            "quantity": 8,
-            "totalPrice": 200
+            "quantity": 8
         }
-    ] }
+    ]
+   }
    response : {
-                "amount": 164.00
+                "amount": 145.00
               } 
 
 7. Below is the screenshot for above request via Postman :
-  ![Model](https://github.com/pisharma01/nagarro-repo/blob/9086a8063541c9ee1119438acd21e151cc08bb15/dm-assignment/retail/src/main/resources/execution_pisharma.png)
+  ![Model](https://github.com/pisharma01/nagarro-repo/blob/5c0ed4ea7608be16d2b3be34af426dd5c61c8924/dm-assignment/retail/src/main/resources/execution_as_employee_type.png)
